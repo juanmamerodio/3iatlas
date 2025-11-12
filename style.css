@@ -161,9 +161,8 @@ a:hover {
 }
 
 /* --- (NUEVO) Aplicar el fondo principal al contenido <main> --- */
-/* (REGLA ELIMINADA, el fondo vuelve al body) */
 main {
-    /* transition: background-color 0.4s ease; */ /* <-- ELIMINADO */
+    /* (REGLAS ELIMINADAS, el fondo vuelve al body) */
 }
 
 
@@ -455,7 +454,7 @@ body.dark-theme .theme-toggle-button .moon {
 
 /* --- Página 1: Información --- */
 .hero {
-    position: relative; /* (NUEVO) Para anclar el video */
+    position: relative; /* <-- (NUEVO) Para anclar el video */
     height: 90vh;
     min-height: 600px;
     display: flex;
