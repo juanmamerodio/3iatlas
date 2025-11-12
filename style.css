@@ -631,20 +631,7 @@ body.dark-theme .theme-toggle-button .moon {
 
 /* *** AUDITORÍA DE INGENIERO (CAMBIO CSS 6 de 7) *** */
 @media (min-width: 769px) {
-    .alternating-item {
-        grid-template-columns: 1fr 1fr; /* 50/50 en desktop */
-    }
-    
-    /* El item par (even) invierte el orden de las columnas */
-    .alternating-item:nth-child(even) {
-        grid-template-columns: 1fr 1fr;
-    }
-    
-    .alternating-item:nth-child(even) .item-visual {
-        grid-column: 2; /* Visual a la derecha */
-        grid-row: 1;
-    }
-
+    /* ... existing code ... -->
     .alternating-item:nth-child(even) .item-text {
         grid-column: 1; /* Texto a la izquierda */
         grid-row: 1;
@@ -653,34 +640,52 @@ body.dark-theme .theme-toggle-button .moon {
 
 
 .item-visual {
-    background-color: #111; /* Contraste fuerte */
+    background-color: #111; /* Contraste fuerte (fallback) */
     color: white;
     border-radius: 18px; /* MODIFICADO (Unificado) */
-    padding: 4rem 3rem;
+    padding: 0; /* MODIFICADO (para que la imagen ocupe todo) */
     text-align: center;
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block; /* MODIFICADO (para que la imagen llene) */
     min-height: 300px;
     transition: all 0.3s var(--ease-out-cubic);
+    overflow: hidden; /* (NUEVO) Para recortar la imagen */
 }
 
 .item-visual:hover {
-    transform: scale(1.03);
+    /* transform: scale(1.03); (Se mueve a la imagen) */
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
 }
 
-.item-visual h3 {
-    font-size: 2.5rem;
-    color: white;
+/* (NUEVO) Estilo para la imagen dentro del visual */
+.item-visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* La magia: rellena el contenedor sin deformarse */
+    display: block;
+    transition: transform 0.4s var(--ease-out-cubic);
 }
+
+.item-visual:hover img {
+    transform: scale(1.05); /* Efecto de zoom en la imagen */
+}
+
+/* (REGLA ELIMINADA) .item-visual h3 */
+
 
 .item-text {
     padding: 1rem 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
+}
+
+/* (NUEVO) Estilo para el H3 movido al item-text */
+.item-text h3 {
+    font-size: 2.25rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: 1rem;
 }
 
 .item-text p {
