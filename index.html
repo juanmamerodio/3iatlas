@@ -3,274 +3,539 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <link rel="shortcut icon" href="telescopio.png" />
-    <title>Proyecto 3i/atlas: La AdvertENCIA</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
-    
-    <!-- 
-      *** AUDITORÍA DE INGENIERO (NUEVO CAMBIO 2 de 4) ***
-      POR QUÉ: Para habilitar los controles 3D profesionales.
-      PARA QUÉ: Cargamos el script 'OrbitControls' que nos permite
-      mover la cámara con el mouse. DEBE ir después de Three.js.
-    -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" defer></script>
-</head>
-<body class="light-theme"> <!-- Tema claro por defecto -->
+    <title>Proyecto 3i/atlas: La AdvertENCIA (v3.1)</title>
+    <!-- Se eliminó el shortcut icon como pediste -->
+    <style>
+        /* --- ESTILOS CSS --- */
+        :root {
+            --font-main: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+            --color-bg-light: #f5f5f7;
+            --color-bg-dark: #121212;
+            --color-surface-light: rgba(255, 255, 255, 0.7);
+            --color-surface-dark: rgba(30, 30, 30, 0.85);
+            --color-text-light: #1d1d1f;
+            --color-text-dark: #f5f5f7;
+            --color-primary: #007aff;
+            --color-accent: #00e5ff;
+            --color-warning: #ff3b30;
+            --color-success: #34c759;
+            --border-radius: 12px;
+            
+            --theme-bg: var(--color-bg-light);
+            --theme-text: var(--color-text-light);
+            --theme-surface: var(--color-surface-light);
+        }
 
-    <!-- === El footer pero de arriba, encabezado PERSISTENTE === -->
-    <header class="site-header">
-        <a href="#" class="logo nav-link" data-page="page-informacion">
-            <img class="telescopio"src="telescopio.png" alt="Logo 3i/atlas">
-        </a>
+        body.dark-theme {
+            --theme-bg: var(--color-bg-dark);
+            --theme-text: var(--color-text-dark);
+            --theme-surface: var(--color-surface-dark);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        <div class="header-controls">
-            <nav>
-                <div class="nav-links">
-                    <a class="nav-link" data-page="page-informacion">Información</a>
-                    <a class="nav-link" data-page="page-tracker">Rastreador</a>
-                </div>
-            </nav>
-            <div class="session-controls-desktop">
-                <a id="login-button" class="cta-button cta-button-secondary nav-link" data-page="page-login">Iniciar Sesión</a>
-                <a id="unirse-button" class="cta-button cta-button-primary nav-link" data-page="page-login">Unirse al Proyecto</a>
-                <a id="logout-button" class="cta-button cta-button-secondary" style="display: none;">Salir</a>
-            </div>
+        body {
+            font-family: var(--font-main);
+            background-color: var(--theme-bg);
+            color: var(--theme-text);
+            line-height: 1.6;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
 
-            <!--Tema -->
-            <div id="theme-toggle" class="theme-toggle-button" title="Alternar tema">
-                <div class="sun"></div>
-                <div class="moon"></div>
-            </div>
+        /* --- Header y Navegación --- */
+        .site-header {
+            position: fixed;
+            top: 0; width: 100%; z-index: 1000;
+            background: var(--theme-surface);
+            backdrop-filter: blur(20px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(128,128,128,0.2);
+        }
 
-            <!-- 
-              *** AUDITORÍA DE INGENIERO (CAMBIO 3 de 4) ***
-              POR QUÉ: Para el responsive que pediste.
-              PARA QUÉ: Botón "hamburguesa" para móviles.
-            -->
-            <div class="menu-toggle-button" id="menu-toggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+        .logo { font-weight: bold; font-size: 1.5rem; color: var(--color-primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .telescopio { width: 30px; height: 30px; }
+        
+        .nav-links a, .cta-button {
+            margin-left: 1rem;
+            text-decoration: none;
+            cursor: pointer;
+            color: var(--theme-text);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover { color: var(--color-primary); }
+
+        .cta-button {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: var(--color-primary);
+            color: white !important;
+            border: none;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        .cta-button:hover { transform: scale(1.05); background-color: #0056b3; }
+
+        .theme-toggle-button {
+            cursor: pointer;
+            padding: 5px;
+            font-size: 1.2rem;
+            margin-left: 1rem;
+        }
+
+        /* --- Páginas --- */
+        .page { display: none; padding-top: 80px; min-height: 100vh; }
+        .page.active { display: block; animation: fadeIn 0.5s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Hero Section --- */
+        .hero {
+            text-align: center;
+            padding: 4rem 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .hero h1 { font-size: 3.5rem; margin-bottom: 1rem; letter-spacing: -2px; line-height: 1.1; }
+        .hero p { font-size: 1.25rem; color: gray; margin-bottom: 2rem; }
+        
+        /* --- Secciones de Info (Estilo Avi Loeb) --- */
+        .loeb-section {
+            text-align: left;
+            margin-top: 4rem;
+            padding: 2rem;
+            background: rgba(0,0,0,0.03);
+            border-radius: 18px;
+            border-left: 4px solid var(--color-primary);
+        }
+        body.dark-theme .loeb-section { background: rgba(255,255,255,0.05); }
+        
+        .loeb-section h3 { font-size: 1.8rem; margin-bottom: 1rem; color: var(--theme-text); }
+        .loeb-section p { font-size: 1.1rem; margin-bottom: 1rem; color: var(--theme-text); opacity: 0.9; }
+        .highlight { color: var(--color-primary); font-weight: bold; }
+
+        /* --- Login Box --- */
+        .login-container {
+            display: flex; justify-content: center; align-items: center; height: 80vh;
+        }
+        .login-box {
+            background: var(--theme-surface);
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+            width: 100%; max-width: 400px;
+            border: 1px solid rgba(128,128,128,0.1);
+        }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600; }
+        .form-group input {
+            width: 100%; padding: 0.8rem;
+            border-radius: 8px; border: 1px solid #ccc;
+            background: var(--theme-bg); color: var(--theme-text);
+        }
+        
+        /* --- NUEVO RASTREADOR (Sin 3D) --- */
+        .tracker-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-container {
+            background: #050505;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            color: #00e5ff;
+            font-family: 'Courier New', Courier, monospace;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 550px;
+            box-shadow: inset 0 0 80px rgba(0, 229, 255, 0.05);
+            border: 1px solid #222;
+        }
+
+        /* Círculo de Proximidad SVG */
+        .proximity-gauge {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        .gauge-circle-bg {
+            fill: none;
+            stroke: #1a1a1a;
+            stroke-width: 10;
+        }
+        .gauge-circle-fill {
+            fill: none;
+            stroke: var(--color-accent);
+            stroke-width: 10;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 0.5s linear;
+            filter: drop-shadow(0 0 8px var(--color-accent));
+        }
+        .gauge-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+        }
+        .gauge-value { font-size: 3rem; font-weight: bold; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        .gauge-label { font-size: 0.8rem; text-transform: uppercase; color: #888; letter-spacing: 2px; }
+
+        .dashboard-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        /* Terminal de logs */
+        .terminal-log {
+            width: 100%;
+            height: 120px;
+            background: rgba(0,20,0,0.3);
+            border: 1px solid #333;
+            padding: 1rem;
+            overflow-y: hidden;
+            font-size: 0.75rem;
+            color: var(--color-success);
+            font-family: 'Courier New', Courier, monospace;
+            border-left: 3px solid var(--color-success);
+        }
+        .log-line { margin-bottom: 5px; opacity: 0.8; }
+        .blink { animation: blinker 1s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+
+        /* Sidebar de datos */
+        .sidebar {
+            background: var(--theme-surface);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            height: fit-content;
+        }
+        .status-list { list-style: none; }
+        .status-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(128,128,128,0.2);
+            font-size: 0.95rem;
+        }
+        .status-label { font-weight: 600; color: var(--theme-text); opacity: 0.7; }
+        .status-val { font-family: 'Courier New', Courier, monospace; font-weight: 700; color: var(--color-primary); }
+
+        /* Responsive */
+        @media (max-width: 850px) {
+            .tracker-layout { grid-template-columns: 1fr; }
+            .nav-links { display: none; } 
+            .hero h1 { font-size: 2.5rem; }
+            .dashboard-container { min-height: 400px; }
+            .gauge-value { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body class="light-theme">
+
+    <!-- HEADER -->
+    <header class="site-header">
+        <a href="#" class="logo" onclick="navigateTo('page-informacion')">
+            <span>🔭</span> 3i/atlas
+        </a>
+        <nav class="nav-links">
+            <a onclick="navigateTo('page-informacion')">Teoría Loeb</a>
+            <a onclick="navigateTo('page-tracker')">Datos en Vivo</a>
+        </nav>
+        <div style="display:flex; align-items:center;">
+            <button id="login-btn" class="cta-button" onclick="navigateTo('page-login')">Iniciar Sesión</button>
+            <button id="logout-btn" class="cta-button" style="display:none; background-color: #666;" onclick="handleLogout()">Desconectar</button>
+            <div id="theme-toggle" class="theme-toggle-button" title="Cambiar Tema">🌓</div>
         </div>
-
     </header>
 
-    <!-- 
-   menu para celulares, cuando apretas la hamburgesa
-    -->
-    <div class="mobile-nav" id="mobile-nav">
-        <nav>
-            <a class="nav-link-mobile nav-link" data-page="page-informacion">Información</a>
-            <a class="nav-link-mobile nav-link" data-page="page-tracker">Rastreador</a>
-        </nav>
-        <div class="session-controls-mobile">
-            <a id="mobile-login-button" class="cta-button cta-button-secondary nav-link" data-page="page-login">Iniciar Sesión</a>
-            <a id="mobile-unirse-button" class="cta-button cta-button-primary nav-link" data-page="page-login">Unirse al Proyecto</a>
-            <a id="mobile-logout-button" class="cta-button cta-button-secondary" style="display: none;">Salir</a>
-        </div>
-    </div>
-
-
-    <!-- paginas -->
     <main>
-        <!--  pagina de INFO  -->
+        <!-- PAGINA 1: INFORMACIÓN -->
         <section id="page-informacion" class="page active">
-            
-            <!-- Sección Hero -->
-            <section class="hero">
-                <!--  FONDO  -->
-                <div id="video-background-wrapper">
-                    <video id="video-background" autoplay muted loop playsinline poster="3iVideo.mp4">
-                        <source src="3iVideo.mp4" type="video/mp4">
-                    </video>
+            <div class="hero">
+                <h1>No estamos solos.<br>Nunca lo estuvimos.</h1>
+                <p><strong>02 de Diciembre, 2025.</strong> Los datos confirman lo que la comunidad científica temía admitir.</p>
+                
+                <div style="background: rgba(255, 59, 48, 0.08); padding: 20px; border-radius: 12px; border: 1px solid var(--color-warning); margin: 30px 0; text-align: left;">
+                    <h4 style="color: var(--color-warning); margin-bottom: 10px; display:flex; align-items:center; gap:10px;">
+                        ⚠️ ALERTA PROYECTO GALILEO - NIVEL 1
+                    </h4>
+                    <p style="color: var(--theme-text); margin:0; font-size: 0.95rem;">
+                        La señal de telemetría de las 04:00 AM confirma una <strong>desaceleración no gravitacional</strong> del objeto 3i/Atlas de 0.8 micrones por segundo al cuadrado. Esto no es sublimación de hielo. Esto es un frenado intencional.
+                    </p>
                 </div>
-                <!--  FIN DE Fondo  -->
-                <h1>La Realidad No Es Real.</h1>
-                <p>Hemos detectado una estructura de información subyacente que redefine la física, la biología y la conciencia. Es el 3i/atlas. Y necesitamos tu ayuda.</p>
-                <a class="cta-button cta-button-primary nav-link" data-page="page-login">Únete al Proyecto</a>
-            </section>
 
-            <!-- Seccio: que es? -->
-            <section class="content-section">
-                <div class="container">
-                    <h2>¿Qué es 3i/atlas?</h2>
-                    <p class="subtitle">Basado en anomalías como 'Oumuamua y ráfagas de radio rápidas (FRBs), hemos concluido que no estamos buscando un objeto. Estamos buscando el sistema operativo del universo.</p>
-                    <div class="grid-layout">
-                        <article class="grid-item">
-                            <h3>No es un "Objeto"</h3>
-                            <p>Olvida las naves espaciales. 3i/atlas es una capa de reglas no local, impresa en el tejido del espaciotiempo. Creemos que es artificial, obra de una inteligencia de Tipo IV o V.</p>
-                        </article>
-                        <article class="grid-item">
-                            <h3>La Realidad como Interfaz</h3>
-                            <p>La mecánica cuántica no es extraña; es una API. Cuando "medimos" una partícula, no la descubrimos: enviamos una "consulta" (query) al Atlas, y este nos devuelve un resultado. La realidad es un renderizado.</p>
-                        </article>
-                        <article class="grid-item">
-                            <h3>El "Software" de la Vida</h3>
-                            <p>La vida no es un accidente. La complejidad es una rutina pre-programada. El 3i guía a la materia, "sugiriendo" caminos (como la formación de aminoácidos) para asegurar que la complejidad y la conciencia emerjan.</p>
-                        </article>
-                    </div>
+                <div class="loeb-section">
+                    <h3>La Hipótesis de la Vela Solar</h3>
+                    <p>Durante años, mis colegas insistieron en que 'Oumuamua era una roca extraña. Yo pregunté: ¿Por qué aceleraba sin dejar rastro de gas? ¿Por qué brillaba de manera intermitente?</p>
+                    <p>Ahora, con <strong>3i/Atlas</strong>, la evidencia es irrefutable. Su relación masa-superficie sugiere que es extremadamente delgado, posiblemente menos de un milímetro de espesor. <span class="highlight">Esto no es un asteroide. Es una vela de luz.</span></p>
+                    <p>Imaginá una hoja de papel gigante flotando en el viento estelar, impulsada por la radiación de las estrellas. Es una tecnología que nosotros apenas estamos empezando a soñar, pero que alguien más ya dominó hace eones.</p>
                 </div>
-            </section>
 
-            <!-- Seccion 2: peligro -->
-            <section class="content-section danger-section">
-                <div class="container">
-                    <h2>Lo que pasa AHORA</h2>
-                    <p class="subtitle">Te contamos que es lo que está pasando ahora mismo con este objeto interestelar para que estés al tanto de la evolución del mismo.</p>
-                    
-                    <div class="alternating-layout">
-                        <!-- Item 1 -->
-                        <article class="alternating-item">
-                            <div class="item-visual">
-                                <!-- H3 REEMPLAZADO POR IMAGEN -->
-                                <img src="https://images.ecestaticos.com/VxdctQ8HJdHNW-uFOAx5kKNO9qE=/0x0:2272x1193/1338x752/filters:fill(white):format(jpg)/f.elconfidencial.com%2Foriginal%2Ffcc%2F58a%2Fab6%2Ffcc58aab6406d8f446fc27bfaf47734e.jpg" loading="lazy">
-                            </div>
-                            <div class="item-text">
-                                <!-- H3 MOVIDO AQUÍ -->
-                                <h3>Cambio de Color</h3>
-                                <p>El 3i/Atlas cambio de color: Se cree que esto pasa porque creó una capa de defensa ante basura estelar.</p>
-                            </div>
-                        </article>
-                        <!-- Item 2 -->
-                        <article class="alternating-item">
-                            <div class="item-visual">
-                                <!-- H3 REEMPLAZADO POR IMAGEN -->
-                                <img src="https://fotografias-2.larazon.es/clipping/cmsimages02/2025/11/09/D9894C51-E922-412B-B6A3-E78F7522DA68/nula-interferencia-atmosferica-permitio-resolucion-nunca-vista-3iatlas_98.jpg?crop=812,457,x0,y82&width=1900&height=1069&optimize=low&format=webply" alt="Simulación de la sonda siguiendo al 3i/Atlas" loading="lazy">
-                            </div>
-                            <div class="item-text">
-                                <!-- H3 MOVIDO AQUÍ -->
-                                <h3>Detección de Sonda</h3>
-                                <p>Hace relativamente poco, se detectó un cuerpo que está siguiendo el rastro del 3i/Atlas, es probable de que este sea simplemente una Sonda de algo aún mas grande.</p>
-                            </div>
-                        </article>
-                        <!-- Item 3 -->
-                        <article class="alternating-item">
-                            <div class="item-visual">
-                                <!-- H3 REEMPLAZADO POR IMAGEN -->
-                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKsr0NU9QDVMiFutoWPV9-zTYuojr5-Mxbdw&s" loading="lazy">
-                            </div>
-                            <div class="item-text">
-                                <!-- H3 MOVIDO AQUÍ -->
-                                <h3>Estela de Níquel</h3>
-                                <p>Se revela que el 3i/Atlas deja a lo largo de su recorrido una estela de "Óxido de Níquel", algo totalmente extraño que ningun asteroide habia hecho jamás.</p>
-                            </div>
-                        </article>
-                    </div>
-
+                <div class="loeb-section" style="border-left-color: var(--color-success);">
+                    <h3>El Principio de Mediocridad</h3>
+                    <p>Es arrogante pensar que somos la única civilización inteligente en un universo con trillones de planetas. Es como ser una hormiga en una vereda de Buenos Aires y creer que sos el dueño de la ciudad porque nunca viste a un humano mirándote con lupa.</p>
+                    <p>3i/Atlas podría ser una boya de navegación, basura espacial antigua o, en el escenario más inquietante, una sonda activa buscando signos de biología o tecnología nuclear.</p>
+                    <p><strong>La física no miente.</strong> Y la física nos dice que esto fue fabricado.</p>
                 </div>
-            </section>
 
-            <!-- Seccion 4: CTA final -->
-            <section class="content-section final-cta">
-                <div class="container">
-                    <h2>Rastreá el 3i/Atlas con nosotros.</h2>
-                    <p class="subtitle">Hicimos esta pagina con el mero hecho de rastrear este cuerpo interestelar sin tener un telescopio. La única forma de entender el sistema es observándolo.</p>
-                    <a class="cta-button cta-button-primary nav-link" data-page="page-login">RASTREÁR AHORA</a>
-                </div>
-            </section>
-
-        </section>
-
-        <!-- === 2: LOGIN Y REGISTRO-->
-
-        <section id="page-login" class="page">
-            <div class="login-container container">
-                <div class="login-box">
-                    
-                    <!-- Formulario de Login -->
-                    <form id="form-login" class="active">
-                        <h2>Iniciar Sesión</h2>
-                        <div class="form-group">
-                            <label for="login-username">Usuario</label>
-                            <input type="text" id="login-username" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="login-password">Contraseña</label>
-                            <input type="password" id="login-password" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="submit" value="Ingresar al Rastreador" class="cta-button">
-                        </div>
-                        <p class="form-toggle-link">
-                            ¿No tienes cuenta? <a id="show-register">Regístrate aquí.</a>
-                        </p>
-                    </form>
-
-                    <!-- Formulario de Registro -->
-                    <form id="form-register">
-                        <h2>Crear Cuenta</h2>
-                        <div class="form-group">
-                            <label for="reg-username">Usuario</label>
-                            <input type="text" id="reg-username" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reg-email">Email</label>
-                            <input type="email" id="reg-email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reg-password">Contraseña</label>
-                            <input type="password" id="reg-password" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="submit" value="Crear y Unirse" class="cta-button">
-                        </div>
-                        <p class="form-toggle-link">
-                            ¿Ya tienes cuenta? <a id="show-login">Inicia sesión.</a>
-                        </p>
-                    </form>
-
+                <div style="margin-top: 3rem;">
+                    <button class="cta-button" onclick="navigateTo('page-login')" style="padding: 1rem 2rem; font-size: 1.2rem;">Acceder a los Datos Crudos</button>
                 </div>
             </div>
         </section>
 
+        <!-- PAGINA 2: LOGIN -->
+        <section id="page-login" class="page">
+            <div class="login-container">
+                <div class="login-box">
+                    <h2 style="text-align: center; margin-bottom: 2rem;">Acceso a ATLAS</h2>
+                    <p style="text-align: center; margin-bottom: 2rem; color: gray;">Ingresá tus credenciales para ver la telemetría en tiempo real.</p>
+                    <form id="form-login">
+                        <div class="form-group">
+                            <label>Identificador de Usuario</label>
+                            <input type="text" id="username" placeholder="Ej: investigador_01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Clave de Acceso</label>
+                            <input type="password" id="password" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="cta-button" style="width:100%; margin-top: 1rem;">Autenticar</button>
+                    </form>
+                    <p style="font-size: 0.8rem; text-align: center; margin-top: 20px; opacity: 0.5;">Conexión segura vía AppScript / Google Cloud</p>
+                </div>
+            </div>
+        </section>
 
-        <!-- === pag 3: RASTREADOR === -->
-
+        <!-- PAGINA 3: RASTREADOR (NUEVO DISEÑO 2D) -->
         <section id="page-tracker" class="page">
-            <div class="container tracker-layout">
+            <div class="tracker-layout">
                 
-                <!--mapa -->
-                <div class="map-container">
-                    <!-- Three.js -->
-                    <div id="tracker-map"></div>
+                <!-- 1. El Nuevo Aparato de Seguimiento (Dashboard) -->
+                <div class="dashboard-container">
+                    <div class="dashboard-header">
+                        <span>SISTEMA DE RASTREO: <span style="color:var(--color-success)">EN LINEA</span></span>
+                        <span>LINK: DEEP SPACE NETWORK [GOLDSTONE]</span>
+                        <span>TARGET: 3i/ATLAS</span>
+                    </div>
+
+                    <!-- Gráfico Circular SVG -->
+                    <div class="proximity-gauge">
+                        <svg width="300" height="300">
+                            <!-- Fondo del círculo -->
+                            <circle class="gauge-circle-bg" cx="150" cy="150" r="120"></circle>
+                            <!-- Relleno del círculo (Progreso) -->
+                            <circle class="gauge-circle-fill" cx="150" cy="150" r="120" stroke-dasharray="754" stroke-dashoffset="754"></circle>
+                        </svg>
+                        <div class="gauge-text">
+                            <div class="gauge-value" id="dashboard-distance">98.4</div>
+                            <div class="gauge-label">UA (Unidades Astronómicas)</div>
+                            <div style="font-size: 0.7rem; color: var(--color-accent); margin-top:5px; letter-spacing: 1px;">DISTANCIA A TIERRA</div>
+                        </div>
+                    </div>
+
+                    <!-- Terminal Log -->
+                    <div class="terminal-log" id="terminal-output">
+                        <div class="log-line">> [SYSTEM] Iniciando conexión segura (v3.0)...</div>
+                        <div class="log-line">> [SENSOR] Calibrando espectrometría Doppler...</div>
+                        <div class="log-line">> [NETWORK] Obteniendo paquetes de datos... <span class="blink">_</span></div>
+                    </div>
                 </div>
 
-                <!-- sidebar -->
+                <!-- 2. Sidebar con datos numéricos -->
                 <aside class="sidebar">
-                    
-                    <!-- Widget de Estado -->
-                    <div class="status-widget">
-                        <h3>Telemetría 3i/atlas (Sim.)</h3>
-                        <ul class="status-list">
-                            <li><span>ID de Señal:</span> <span>ATL-3i-001</span></li>
-                            <!-- IDs para simulación JS -->
-                            <li><span>Velocidad (km/s):</span> <span id="sim-velocity">150.45</span></li>
-                            <li><span>Distancia (UA):</span> <span id="sim-distance">98.44</span></li>
-                            <li><span>ETA Tierra (sim):</span> <span id="sim-time">--</span></li>
-                            <li><span>Origen (Teórico):</span> <span>Sector 7G (Nube de Oort)</span></li>
-                            <li><span>Estado Sistema:</span> <span id="sim-status">MONITOREANDO</span></li>
-                            <li><span>Ping Voyager 1:</span> <span id="sim-voyager">...</span></li>
-                        </ul>
+                    <h3 style="margin-bottom: 1.5rem; border-bottom: 2px solid var(--color-primary); padding-bottom: 0.5rem;">Telemetría en Vivo</h3>
+                    <ul class="status-list">
+                        <li><span class="status-label">ID Objetivo</span> <span class="status-val">3i/ATLAS-001</span></li>
+                        <li><span class="status-label">Velocidad</span> <span class="status-val"><span id="sim-velocity">150.45</span> km/s</span></li>
+                        <li><span class="status-label">ETA Tierra</span> <span class="status-val" id="sim-time">--</span></li>
+                        <li><span class="status-label">Señal</span> <span class="status-val" style="color:var(--color-success)">FUERTE (-89dB)</span></li>
+                        <li><span class="status-label">Maniobra</span> <span class="status-val" style="color:var(--color-warning)">FRENADO ACTIVO</span></li>
+                        <li><span class="status-label">Origen</span> <span class="status-val">INTERESTELAR</span></li>
+                    </ul>
+                    <div style="margin-top: 20px; font-size: 0.8rem; color: var(--theme-text); opacity: 0.6; line-height: 1.4;">
+                        <strong>Nota Técnica:</strong> La velocidad se calcula utilizando el corrimiento al rojo Doppler corregido por la gravedad solar. Cualquier desviación >0.01% indica propulsión artificial.
                     </div>
                 </aside>
+
             </div>
         </section>
     </main>
 
-    <!-- === PIE DE PÁGINA === -->
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 2025 Proyecto 3i/atlas. Todos los derechos reservados. Esta es una iniciativa de concientización pública.</p>
-            <nav class="footer-links">
-                <a href="#">Privacidad</a>
-                <a href="#">Términos de Uso</a>
-                <a href="#">Contacto</a>
-            </nav>
-        </div>
-    </footer>
-    
-    <script src="api.js" defer></script>
+    <script>
+        /* --- JAVASCRIPT DE LÓGICA --- */
+        
+        // URL de tu "Base de Datos" (Google Sheet)
+        const G_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxabjy4eJxZoL1qSewLRfKqvI4tn0EopsEimZhAZydmh4OA8c9Ya1gR6IH1jHHouWvv/exec';
+
+        // Variables de estado
+        let isLoggedIn = false;
+        let simulationTimer = null;
+
+        // Elementos del DOM
+        const pages = document.querySelectorAll('.page');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // --- 1. Lógica de Navegación ---
+        function navigateTo(pageId) {
+            if (pageId === 'page-tracker' && !isLoggedIn) {
+                alert("Acceso Restringido: Se requiere autorización de Nivel 1 para ver datos en tiempo real.");
+                pageId = 'page-login';
+            }
+
+            pages.forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+
+            if (pageId === 'page-tracker') {
+                iniciarSimulacion();
+            } else {
+                detenerSimulacion();
+            }
+        }
+
+        // --- 2. Lógica de Login ---
+        document.getElementById('form-login').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('button');
+            const originalText = btn.textContent;
+            
+            btn.textContent = "Verificando credenciales...";
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+            
+            // Simulación de network request (aquí iría tu fetch real)
+            setTimeout(() => {
+                isLoggedIn = true;
+                actualizarHeader();
+                navigateTo('page-tracker');
+                btn.textContent = originalText;
+                btn.disabled = false;
+                btn.style.opacity = "1";
+            }, 1200);
+        });
+
+        function handleLogout() {
+            isLoggedIn = false;
+            actualizarHeader();
+            navigateTo('page-informacion');
+        }
+
+        function actualizarHeader() {
+            if (isLoggedIn) {
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'inline-block';
+            } else {
+                loginBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'none';
+            }
+        }
+
+        // --- 3. SISTEMA DE RASTREO SIMULADO ---
+        function iniciarSimulacion() {
+            if (simulationTimer) return;
+            
+            console.log("Sistema de rastreo activado.");
+            
+            const elDistancia = document.getElementById('dashboard-distance');
+            const elVelocidad = document.getElementById('sim-velocity');
+            const elTiempo = document.getElementById('sim-time');
+            const elCirculo = document.querySelector('.gauge-circle-fill');
+            const elTerminal = document.getElementById('terminal-output');
+
+            // Valores iniciales (dramáticos para el 2025)
+            let distanciaUA = 98.44; 
+            let velocidad = 150.45;
+            const circunferencia = 2 * Math.PI * 120; // 754 aprox
+
+            simulationTimer = setInterval(() => {
+                // Simulación de fluctuación de datos
+                velocidad += (Math.random() - 0.6) * 0.5; // Tendencia a bajar levemente (frenado)
+                distanciaUA -= 0.00005; // Acercamiento
+
+                elVelocidad.innerText = velocidad.toFixed(2);
+                elDistancia.innerText = distanciaUA.toFixed(3);
+                
+                // Cálculo simple de ETA
+                let horasRestantes = (distanciaUA * 149597870) / velocidad / 3600;
+                let dias = Math.floor(horasRestantes / 24);
+                elTiempo.innerText = `${dias} Días`;
+
+                // Animación del SVG (Progreso inverso: empieza vacío lejos, se llena cerca)
+                // Asumimos rango 100 UA a 0 UA
+                let porcentaje = 1 - (distanciaUA / 100); 
+                // Clampeamos entre 0 y 1
+                if(porcentaje < 0) porcentaje = 0;
+                if(porcentaje > 1) porcentaje = 1;
+
+                let offset = circunferencia * (1 - porcentaje);
+                elCirculo.style.strokeDashoffset = offset;
+
+                // Logs aleatorios
+                if (Math.random() > 0.8) {
+                    agregarLogTerminal(elTerminal);
+                }
+
+            }, 800);
+        }
+
+        function detenerSimulacion() {
+            if (simulationTimer) {
+                clearInterval(simulationTimer);
+                simulationTimer = null;
+            }
+        }
+
+        function agregarLogTerminal(contenedor) {
+            const mensajes = [
+                "[ALERTA] Corrección de curso detectada (+0.04°)",
+                "[ANALISIS] Espectro de reflexión: METÁLICO",
+                "[COMMS] Ruido de fondo en banda K...",
+                "[SISTEMA] Actualizando efemérides...",
+                "[ALERTA] Desaceleración anómala confirmada",
+                "[DATOS] Paquete 4492 recibido de Voyager 2"
+            ];
+            const mensajeRandom = mensajes[Math.floor(Math.random() * mensajes.length)];
+            
+            const linea = document.createElement('div');
+            linea.className = 'log-line';
+            linea.innerText = `> ${mensajeRandom}`;
+            
+            contenedor.appendChild(linea);
+            // Mantener solo los ultimos 5 logs para no saturar
+            if(contenedor.children.length > 6) {
+                contenedor.removeChild(contenedor.children[0]);
+            }
+        }
+
+        // --- 4. Tema ---
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            document.body.classList.toggle('light-theme');
+        });
+
+    </script>
 </body>
 </html>
